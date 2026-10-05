@@ -126,13 +126,13 @@ const writeups = [
         `
     },
     {
-        title: "Voleur - Active Directory",
+        title: "Voleur - Active Directory (In progress)",
         platform: "HTB",
         description: "A comprehensive breakdown of the enumeration and exploitation process for the Voleur machine.",
         content: '<embed src="voleur.pdf" type="application/pdf" width="100%" height="100%" style="border: none; border-radius: 8px; box-shadow: 0 0 20px rgba(0,0,0,0.5);">'
     },
     {
-        title: "Postman - API Security",
+        title: "Postman - API Security (In progress)",
         platform: "HTB",
         description: "Exploring API testing, request manipulation and security analysis using Postman.",
         content: '<embed src="Postman.pdf" type="application/pdf" width="100%" height="100%" style="border: none; border-radius: 8px; box-shadow: 0 0 20px rgba(0,0,0,0.5);">'
