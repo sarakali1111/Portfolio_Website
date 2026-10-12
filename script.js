@@ -108,18 +108,8 @@ const writeups = [
                 </div>
         `
     },
-    {
-        title: "Voleur - Active Directory (In progress)",
-        tags: ["HTB"],
-        description: "A comprehensive breakdown of the enumeration and exploitation process for the Voleur machine.",
-        content: '<embed src="voleur.pdf" type="application/pdf" width="100%" height="100%" style="border: none; border-radius: 8px; box-shadow: 0 0 20px rgba(0,0,0,0.5);">'
-    },
-    {
-        title: "Postman - API Security (In progress)",
-        tags: ["HTB"],
-        description: "Exploring API testing, request manipulation and security analysis using Postman.",
-        content: '<embed src="Postman.pdf" type="application/pdf" width="100%" height="100%" style="border: none; border-radius: 8px; box-shadow: 0 0 20px rgba(0,0,0,0.5);">'
-    },
+    
+    
     {
         title: "Prompt Engineering - Challenge",
         tags: ["THM", "Offensive"],
@@ -359,7 +349,7 @@ const writeups = [
         content: `
             <div class="writeup-content">
                 <h1>Cloud Security Fundamentals</h1>
-                
+                <img src="image14.png">
                 <p>Cloud security is a shared responsibility between the provider (AWS, Azure, GCP) and the customer. Understanding the primitives of cloud networking, storage, and compute is essential for identifying misconfigurations that lead to full environment compromises.</p>
 
                 <h2>Cloud Storage & Public Buckets</h2>
