@@ -478,9 +478,11 @@ const routes = {
     about: () => `
         <section class="about-content">
             <h2>About Me</h2>
-            <p>I am an aspiring penetration tester focusing on Active Directory and advanced exploitation techniques. My goal is to merge AI capabilities with cybersecurity to automate threat detection and research.</p>
+            <p>I am just someone who is very passionate about learning and practicing Cybersecurity, it is my greatest hobbie to fire up a lab on TryHackMe or Hack The Box and start practicing, whether it's blue or red teaming I find it both entertaining and learning both comes with a great benefit of understanding how threat actors operate and how to detect and defend against these advanced persitent threats (APT).</p>
+        
+        
             <br>
-            <p>Currently mastering the HTB Academy and building tools to enhance my offensive security workflow.</p>
+            <img src="Sara Hacker.png" width="400" height="500">
         </section>
     `,
     detail: (index) => `
