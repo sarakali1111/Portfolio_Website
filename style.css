@@ -256,6 +256,7 @@ code, .mono {
 .tag.ai { border-color: #808080; color: #808080; }
 .tag.offensive { border-color: #ff0000; color: #ff0000; }
 .tag.defensive { border-color: #0000ff; color: #0000ff; }
+.tag.cloud { border-color: #ff6600; color: #ff6600; }
 .tag.general { border-color: #f59e0b; color: #f59e0b; }
 
 /* Professional Writeup Styling (0xdf inspired) */

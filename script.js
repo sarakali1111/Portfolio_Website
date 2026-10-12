@@ -1,6 +1,6 @@
 const writeups = [
     {
-        title: "Jailbreaking - Walkthrough",
+        title: "Jailbreaking",
         tags: ["THM", "AI", "Offensive"],
         description: "Exploring techniques to bypass LLM safeguards and constraints.",
         content: `
@@ -111,8 +111,8 @@ const writeups = [
     
     
     {
-        title: "Prompt Engineering - Challenge",
-        tags: ["THM", "Offensive"],
+        title: "Prompt Engineering",
+        tags: ["THM", "Offensive", "AI"],
         description: "A deep dive into Prompt Engineering techniques: Zero-shot, One-shot, Few-shot, and Chain-of-Thought.",
         content: `
             <div class="writeup-content">
@@ -181,7 +181,7 @@ const writeups = [
     },
     {
         title: "Prompt Defence",
-        tags: ["THM", "Defensive"],
+        tags: ["THM", "Defensive","AI"],
         description: "Understanding LLM security, system prompt hardening, and defence-in-depth strategies.",
         content: `
             <div class="writeup-content">
@@ -263,7 +263,7 @@ const writeups = [
     },
     {
         title: "XDR: Introduction",
-        platform: "THM",
+        tags: ["THM","Cloud"],
         description: "Comprehensive overview of Extended Detection and Response (XDR) and Microsoft Defender XDR.",
         content: `
             <div class="writeup-content">
@@ -343,8 +343,210 @@ const writeups = [
         `
     },
     {
+
+        title: "Alert Triage With Splunk",
+        tags: ["THM", "Defensive"],
+        description: "Solving common scenarios of alerts investigation within Splunk.",
+        content: `
+        <div class="writeup-content">
+        <p>
+  <img src="Alert_Triage_Splunk/image_1.png" />
+</p>
+<p>
+  <a href="https://tryhackme.com/room/alerttriagewithsplunk">https://tryhackme.com/room/alerttriagewithsplunk</a>
+</p>
+<h2>
+  <a id="_7vwg9rtvk5sq"></a>Introduction
+</h2>
+<p>As a SOC analyst, it’s important to be able to investigate different types of suspicious activity across a variety of assets in the environment. Knowing what to look for and which details matter most during an investigation is a key part of the role.</p>
+<h3>
+  <a id="_d0eq3zhilf5k"></a>Objectives
+</h3>
+<ul>
+  <li>Learn how to properly investigate alerts in a SOC environment.</li>
+  <li>Understand how to investigate brute-force attacks on Linux systems.</li>
+  <li>Discover the persistence mechanism on Windows systems.</li>
+  <li>Analyse a web shell on a vulnerable web server.</li>
+  <li>Learn how to investigate alerts for three given scenarios using Splunk.</li>
+</ul>
+<h2>
+  <a id="_m94bodspnqcu"></a>Initial Access Alert
+</h2>
+<p>We will explore scenarios that are probable that as an analyst we may encounter.</p>
+<h3>
+  <a id="_ed8w8kk3tg5w"></a>Alert Scenario
+</h3>
+<p>
+  <img src="Alert_Triage_Splunk/image_2.png" />
+</p>
+<p>Let’s answer the questions without following the walkthrough from the room.</p>
+<p>
+  <strong>How many failed login attempts were made on the user john.smith?</strong>
+</p>
+<p>We craft the following Splunk query:</p>
+<p>index=* src=10.10.242.248 user=&quot;john.smith&quot; reason=&quot;Failed password&quot;</p>
+<p>And running it we got the following results:</p>
+<p>
+  <img src="Alert_Triage_Splunk/image_3.png" />
+</p>
+<p>
+  <img src="Alert_Triage_Splunk/image_4.png" />
+</p>
+<p>
+  <img src="Alert_Triage_Splunk/image_5.png" />
+</p>
+<p>What was the duration of the brute force attack in minutes?</p>
+<p>Latest event was at:</p>
+<p>
+  <img src="Alert_Triage_Splunk/image_6.png" />
+</p>
+<p>
+  <img src="Alert_Triage_Splunk/image_7.png" />
+</p>
+<p>And the first event started at</p>
+<p>
+  <img src="Alert_Triage_Splunk/image_8.png" />
+</p>
+<p>So 5 minutes passed between the start and end of the brute force attack.</p>
+<p>
+  <strong>What username was the attacker able to privilege escalate to?</strong>
+</p>
+<p>With the following query</p>
+<p>index=* action=success host=&quot;ce-splunk&quot;</p>
+<p>We get 11 attacks and we can see that a session was opened by john.smith for the root user.</p>
+<p>
+  <img src="Alert_Triage_Splunk/image_9.png" />
+</p>
+<p>
+  <img src="Alert_Triage_Splunk/image_10.png" />
+</p>
+<p>
+  <img src="Alert_Triage_Splunk/image_11.png" />
+</p>
+<p>
+  <strong>What is the name of the user account created by the attacker for persistence?</strong>
+</p>
+<p>If we filter by “action=created” we can found the user that was created by the attacker to create persistence.</p>
+<p>So the full SPlunk query is:</p>
+<p>index=* host=&quot;ce-splunk&quot; action=created</p>
+<p>The results are:</p>
+<p>
+  <img src="Alert_Triage_Splunk/image_12.png" />
+</p>
+<p>And there we have the created user “system-utm”.</p>
+<p>However, we can expand the narrative by searching all events that have “system-utm” in it, and this way we can get the full narrative since the beginning of the creation of the account.</p>
+<p>The query: index=* host=&quot;ce-splunk&quot; &quot;system-utm&quot;</p>
+<p>
+  <img src="Alert_Triage_Splunk/image_13.png" />
+</p>
+<p>So, here we can see when the attacker used the root account to execute the adduser command to add system-utm.</p>
+<p>Now let’s analyze the queries that the room suggests that we use, the first one is to hunt for both successful and failed login attempts.</p>
+<p>
+  <em>index=&quot;linux-alert&quot; sourcetype=&quot;linux_secure&quot; 10.10.242.248 </em>
+</p>
+<p>
+  <em>| search &quot;Accepted password for&quot; OR &quot;Failed password for&quot; OR &quot;Invalid user&quot;</em>
+</p>
+<p>
+  <em>| sort + _time</em>
+</p>
+<p>
+  <em>
+    <img src="Alert_Triage_Splunk/image_14.png" />
+  </em>
+</p>
+<p>The room provides another Splunk search query to get the number of login attempts by user.</p>
+<p>
+  <em>index=&quot;linux-alert&quot; sourcetype=&quot;linux_secure&quot; 10.10.242.248</em>
+</p>
+<p>
+  <em>| rex field=_raw &quot;^\d{4}-\d{2}-\d{2}T[^\s]+\s+(?&lt;log_hostname&gt;\S+)&quot;</em>
+</p>
+<p>
+  <em>| rex field=_raw &quot;sshd\[\d+\]:\s*(?&lt;action&gt;Failed|Accepted)\s+\S+\s+for(?: invalid user)? (?&lt;username&gt;\S+) from (?&lt;src_ip&gt;\d{1,3}(?:\.\d{1,3}){3})&quot;</em>
+</p>
+<p>
+  <em>| eval process=&quot;sshd&quot;</em>
+</p>
+<p>
+  <em>| stats count values(src_ip) as src_ip values(log_hostname) as hostname values(process) as process by username</em>
+</p>
+<p>Results look good as they clearly show which user has been found to be valid and subsequently the attacker proceeded to brute force the user john.smith.</p>
+<p>
+  <img src="Alert_Triage_Splunk/image_15.png" />
+</p>
+<h2>
+  <a id="_4o3to0xarsnn"></a>Persistence Alert
+</h2>
+<p>Now we will focus on a Windows environment.</p>
+<h3>
+  <a id="_5o92nvh2e39p"></a>Alert Scenario
+</h3>
+<p>
+  <img src="Alert_Triage_Splunk/image_16.png" />
+</p>
+<p>We are suggested to use the following query: index=win-alert</p>
+<p>Let’s investigate this blindly,</p>
+<p>First we perform a broad search and get 6,992 events ranging from December 01st 2024 to August 30th 2025</p>
+<p>Now let’s do iindex=win-alert host=&quot;WIN-H015&quot; &quot;oliver.thompson&quot; to focus on the alert details, now we get 344 events</p>
+<p>With the followin query let’s go over windows security events (wineventlog) and action “created” as this is a potential clue of created tasks. </p>
+<p>
+  <em>index=win-alert host=&quot;WIN-H015&quot; &quot;oliver.thompson&quot; source=&quot;WinEventLog:Security&quot; action=created</em>
+</p>
+<p>And we found the following message related to a scheduled task was created..</p>
+<p>
+  <img src="Alert_Triage_Splunk/image_17.png" />
+</p>
+<p>
+  <img src="Alert_Triage_Splunk/image_18.png" />
+</p>
+<p>To answer the first question.</p>
+<p>We also searched with “whoami” and found that the user ran that command.</p>
+<p>index=win-alert host=&quot;WIN-H015&quot; &quot;oliver.thompson&quot; &quot;group&quot;</p>
+<p>
+  <img src="Alert_Triage_Splunk/image_19.png" />
+</p>
+<p>index=win-alert host=&quot;WIN-H015&quot; &quot;oliver.thompson&quot; source=&quot;WinEventLog:Security&quot; action=success src=&quot;DEV-QA-SERVER&quot;</p>
+<p>
+  <img src="Alert_Triage_Splunk/image_20.png" />
+</p>
+<p>
+  <img src="Alert_Triage_Splunk/image_21.png" />
+</p>
+<h2>
+  <a id="_o31y858g0h4o"></a>Web Shell Alert
+</h2>
+<p>In the last scenario we will be looking for activity on a vulnerable web server.</p>
+<h3>
+  <a id="_grbapp12jbe2"></a>Alert Scenario
+</h3>
+<p>
+  <img src="Alert_Triage_Splunk/image_22.png" />
+</p>
+<p>We have to look at the logs located at index=web-alert</p>
+<p>
+  <img src="Alert_Triage_Splunk/image_23.png" />
+</p>
+<p>
+  <img src="Alert_Triage_Splunk/image_24.png" />
+</p>
+<p>We can now search instead with the right field: index=web-alert clientip=&quot;171.251.232.40&quot;</p>
+<p>
+  <img src="Alert_Triage_Splunk/image_25.png" />
+</p>
+<p>
+  <img src="Alert_Triage_Splunk/image_26.png" />
+</p>
+<p>b374k.php</p>
+</div>
+        
+        `
+
+
+    },
+    {
         title: "Cloud Security Fundamentals",
-        platform: "THM",
+        tags: ["THM","Cloud"],
         description: "An introduction to cloud computing security, including shared responsibility, storage, networking, and IMDS.",
         content: `
             <div class="writeup-content">
