@@ -652,6 +652,167 @@ const writeups = [
             </div>
 
             `
+    } ,{
+      title: "Breach in the Cloud",
+        tags: ["PwnedLabs","SOC","Defensive","Offensive"],
+        description: "This lab shows the fundamentals on how to investigate raw AWS Cloudtrail logs using the command line.",
+        content: `
+            <div class="writeup-content">
+              <h2 id="overview">Overview</h2>
+<p>This lab introduces a realistic cloud security incident based on
+suspicious AWS CloudTrail activity. You will analyze real event data to
+identify malicious behavior, investigate S3 enumeration, and understand
+how cloud breaches are detected and triaged in practice. Case files are
+provided via the Pwned Labs Discord.</p>
+<p>First download INCIDENT-3252.zip</p>
+<h2 id="scenario">Scenario</h2>
+<p>We've been alerted to a potential security incident. The Huge
+Logistics security team have provided you with AWS keys of an account
+that saw unusual activity, as well as AWS CloudTrail logs around the
+time of the activity. We need your expertise to confirm the breach by
+analyzing our CloudTrail logs, identifying the compromised AWS service
+and any data that was exfiltrated.</p>
+<h2 id="learning-outcomes">Learning Outcomes</h2>
+<ul>
+<li><p>Prettifying JSON files for easier analysis</p></li>
+<li><p>Familiarity with the AWS CLI</p></li>
+<li><p>Familiarity with analyzing CloudTrail logs</p></li>
+<li><p>Enumerating S3 buckets</p></li>
+<li><p>Simulating an attacker to validate the path to breach</p></li>
+</ul>
+<h2 id="context">Context</h2>
+<p>Analyzing AWS CloudTrail logs is a standard practice for detecting
+suspicious activity within an AWS account, while S3 buckets are
+frequently targeted by attackers due to the valuable data they can
+contain.</p>
+<h3 id="confirming-the-breach-by-analyzing-cloudtrail-logs">Confirming
+the Breach by Analyzing CloudTrail Logs</h3>
+<p>Run the following command to pretify the JSON logs:</p>
+<p><strong>for file in *.json; jq . "</strong><span
+class="math inline">$file" &gt; "$</span><strong>file.tmp"; and mv
+"</strong><span
+class="math inline">$file.tmp""$</span><strong>file";end</strong></p>
+<p>We do a head on any of the files to confirm that the content has been
+pretified:</p>
+<p><img
+src="/home/sara/Documents/PWNED LABS/breach_cloud_img/media/image13.png"
+style="width:5.82292in;height:2.07292in" /></p>
+<p>Let's see what AWS principals (IAM users and roles) having been
+generating activity in the captured logs.</p>
+<p>grep -r userName | sort -u</p>
+<p><img
+src="/home/sara/Documents/PWNED LABS/breach_cloud_img/media/image9.png"
+style="width:2.85417in;height:2.54167in" /></p>
+<p>This reveals the suspicious username temp-user that doesn't match the
+internal naming convention for created accounts. Let's start there.</p>
+<p>Now with the following command let’s inspect logs related to
+temp-user</p>
+<p>grep -h -A 10 temp-user
+107513503799_CloudTrail_us-east-1_20230826T2035Z_PjmwM7E4hZ6897Aq.json</p>
+<p><img
+src="/home/sara/Documents/PWNED LABS/breach_cloud_img/media/image12.png"
+style="width:6.5in;height:1.91667in" /></p>
+<p>This reveals that an IAM user named "temp-user with the globally
+unique ARN (Amazon Resource Name)
+arn:aws:iam::107513503799:user/temp-user from the AWS account
+107513503799 issued the CLI command aws sts get-caller-identity on
+2023-08-26T20:29:37Z .</p>
+<p>The GetCallerIdentity action in AWS is part of the Security Token
+Service (STS) and allows users to retrieve details about the IAM
+identity whose credentials are used to make the API request. It can be
+considered a bit like the whoami command for Windows and Linux. The
+command returns the globally unique ARN, and, if applicable, the assumed
+IAM role's ARN. While this is a commonly used command, it is also used
+by malicious actors to determine the principal (IAM user or role)
+associated with compromised credentials, as part of gaining situational
+awareness.</p>
+<p>The request originated from the IP address 84.32.71.19 . A check on
+the IP reveals that the request originated from an IP address owned by
+Cherry Servers.</p>
+<p><strong>curl <a
+href="http://ipinfo.io/84.32.71.19"><u>ipinfo.io/84.32.71.19</u></a></strong></p>
+<p><img
+src="/home/sara/Documents/PWNED LABS/breach_cloud_img/media/image14.png"
+style="width:4.65625in;height:1.94792in" /></p>
+<p>Cheery Servers is a provider of on-demand cloud resource and is not
+used by Huge Logistics, and so this could be a potential indicator of
+compromise (IoC). Let's dig in further.</p>
+<p>Turning our attention to the next file, a quick look reveals that the
+temp-user account made an unsuccessful attempt to list the contents of a
+bucket named emergency-data-recovery .</p>
+<p><img
+src="/home/sara/Documents/PWNED LABS/breach_cloud_img/media/image8.png"
+style="width:5.76042in;height:1.875in" /></p>
+<p>Analyzing the next log file and again searching for actions invoked
+by the user, we see that they were able to assume the role named
+AdminRole ! The AssumeRole operation in AWS is part STS. It allows an
+AWS identity to assume a different privilege context for a limited
+period, and potentially access other resources that the assuming
+principal wouldn't normally have access to.</p>
+<p><img
+src="/home/sara/Documents/PWNED LABS/breach_cloud_img/media/image5.png"
+style="width:4.46875in;height:1.51042in" /></p>
+<p><img
+src="/home/sara/Documents/PWNED LABS/breach_cloud_img/media/image3.png"
+style="width:4.77083in;height:1.55208in" /></p>
+<h2 id="retracing-steps-as-an-attacker">Retracing Steps as an
+Attacker</h2>
+<p>Now thinking as an attacker, we want to validate the exploitation
+path and access the compromised data. Issue the aws configure command to
+set the AWS keys provided at the top of the lab for the user that we
+believe is compromised. Next we confirm our execution context.</p>
+<p>aws sts get-caller-identity</p>
+<p><img
+src="/home/sara/Documents/PWNED LABS/breach_cloud_img/media/image2.png"
+style="width:4.21875in;height:0.92708in" /></p>
+<p>Let's see if we have any inline user policies attached to our IAM
+user.</p>
+<p>aws iam list-user-policies --user-name temp-user</p>
+<p><img
+src="/home/sara/Documents/PWNED LABS/breach_cloud_img/media/image1.png"
+style="width:1.82292in;height:0.66667in" /></p>
+<p>This reveals the policy named test-temp-user . Let's check it
+out.</p>
+<p>aws iam get-user-policy --user-name temp-user --policy-name
+test-temp-user</p>
+<p><img
+src="/home/sara/Documents/PWNED LABS/breach_cloud_img/media/image10.png"
+style="width:5.6875in;height:2.0625in" /></p>
+<p>Having identified the role, the attacker attempted to assume it. We
+can do this with the command below.</p>
+<p>aws sts assume-role --role-arn
+arn:aws:iam::107513503799:role/AdminRole --role-session-name
+MySession</p>
+<p><img
+src="/home/sara/Documents/PWNED LABS/breach_cloud_img/media/image7.png"
+style="width:6.5in;height:1.80556in" /></p>
+<p>To assume the role, we need to issue the aws configure command to set
+the AccessKeyId and SecretAccessKey provided from the above step.</p>
+<p>Execute the following command to assume the role of AdminRole:</p>
+<p>aws configure set aws_session_token
+"FwoGZXIvYXdzEAwaDH86ye11a+AvUYqtzCKtAe8Pa7vZMLx85vmuMxevcuJSZw7T+m/YgXIHC+ccrILA4s7vW094yNwgvTHy4+fQcrpxKuDfzQeWwK39ykQTGiZyD9Z7xGmAqU+Y0tsL+0IFCMPRhj6tpm34myhHpdo5wMCP1c9+RCa71qDZFPCgVs6Cp1IpLPBu98T06iSYzFJSvK70FmprnvFIYBnaU/vRD9L0buha4Rhhib44wmqR+Hqjp0vQDvs6LJQialrSKJ7xwNYGMi2jhiyaGoiIOO3BG9Knc6AcP+susOhkGgvZele/iGiMu9ceJDscQNnthK15wzM="</p>
+<p>We can confirm that we have assumed the identity:</p>
+<p><img
+src="/home/sara/Documents/PWNED LABS/breach_cloud_img/media/image6.png"
+style="width:5.92708in;height:0.79167in" /></p>
+<p>Then list the bucket and finally copy the file to our machine:</p>
+<p><img
+src="/home/sara/Documents/PWNED LABS/breach_cloud_img/media/image15.png"
+style="width:4.58333in;height:1.33333in" /></p>
+<p>Note: my s3 copy command went wrong because I did not indicate the
+directory in which to save the file. I ran it again and cat the
+emergency.txt file; we see the flag:</p>
+<p><img
+src="/home/sara/Documents/PWNED LABS/breach_cloud_img/media/image4.png"
+style="width:6.5in;height:3.31944in" /></p>
+<p>Challenge solved!</p>
+<p><img
+src="/home/sara/Documents/PWNED LABS/breach_cloud_img/media/image11.png"
+style="width:6.5in;height:1.86111in" /></p>
+
+            </div>
+
+            `
     }
 
 ]
