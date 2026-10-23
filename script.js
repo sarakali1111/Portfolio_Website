@@ -654,7 +654,7 @@ const writeups = [
             `
     } ,{
       title: "Breach in the Cloud",
-        tags: ["PwnedLabs","SOC","Defensive","Offensive"],
+        tags: ["PwnedLabs","SOC","Defensive","Offensive","Cloud"],
         description: "This lab shows the fundamentals on how to investigate raw AWS Cloudtrail logs using the command line.",
         content: `
             <div class="writeup-content">
@@ -809,6 +809,153 @@ style="width:6.5in;height:3.31944in" /></p>
 <p><img
 src="/home/sara/Documents/PWNED LABS/breach_cloud_img/media/image11.png"
 style="width:6.5in;height:1.86111in" /></p>
+
+            </div>
+
+            `
+    },{
+      title: "PHP2SHELL",
+        tags: ["THM","Offensive"],
+        description: "This lab shows the fundamentals on how to investigate raw AWS Cloudtrail logs using the command line.",
+        content: `
+            <div class="writeup-content">
+   <h1 id="php2shell">PHP2SHELL</h1>
+<p>On 21 October 2026 the PHP project disclosed two vulnerabilities
+that, between them, let an unauthenticated attacker run commands on
+almost any PHP server, no login, no file upload the application accepts,
+and no bug in the application itself: the flaw lives in the PHP runtime.
+The disclosure was named PHP2Shell, and because the vulnerable code has
+been present since PHP 5.4.0 in 2012, it reaches fourteen years of
+releases at once.</p>
+<p>The CVEs are:</p>
+<p>CVE-2026-109618</p>
+<p>CVE-2026–109619</p>
+<p>Both with a score of 9.2 Critical on CVSS v4.0.</p>
+<h2 id="objectives">Objectives</h2>
+<ul>
+<li><p>Explain what session.upload_progress does and why it runs before
+any application code.</p></li>
+<li><p>Understand how a PHP memory bailout leaves a dangling pointer
+that survives into the next request.</p></li>
+<li><p>Distinguish the two CVEs: a memory-disclosure path and a
+remote-code-execution path.</p></li>
+<li><p>Run the public exploit chain to leak memory, defeat ASLR and
+execute a command.</p></li>
+<li><p>Detect the attack and apply the mitigations that actually
+work.</p></li>
+</ul>
+<p>Every vulnerability abuses something that was built to be useful, and
+this one is no exception.</p>
+<p>When a browser uploads a large file, the server has no simple way to
+tell the page how far the upload has got. PHP solves this with a feature
+called session.upload_progress. While PHP is still reading a
+multipart/form-data request body off the wire, it writes a running
+description of the upload, its name, its size and how many bytes have
+arrived so far, into the user's $_SESSION. A second request can then
+read that session data and report progress back to the browser. The
+feature is enabled by default, and it is switched on for a given upload
+by including a form field whose name matches the
+session.upload_progress.name setting, which defaults to
+PHP_SESSION_UPLOAD_PROGRESS.</p>
+<p>The vulnerability is what happens when PHP runs out of memory while
+that feature is in the middle of its work, and to see it you need to
+know how PHP handles a fatal error.</p>
+<p>PHP caps how much memory a single request may use with the
+memory_limit setting. When a request tries to exceed it, PHP cannot
+simply carry on, so it performs what the engine calls a bailout: it uses
+a longjmp() to jump straight back to a safe recovery point, abandoning
+whatever it was doing.</p>
+<p>If the out-of-memory condition strikes after the engine has freed a
+block of memory but before it has cleared the pointer that still refers
+to that block, the bailout leaves the pointer behind, pointing at memory
+that is no longer valid. This is a classic dangling pointer, classified
+as CWE-824: Access of Uninitialised Pointer.</p>
+<p>“A memory bailout skips the cleanup”</p>
+<h2 id="reconnaissance-confirming-the-target">Reconnaissance: Confirming
+the Target</h2>
+<p>The vulnerable server runs as a container. List it and read the PHP
+version it ships:</p>
+<table>
+<colgroup>
+<col style="width: 100%" />
+</colgroup>
+<tbody>
+<tr>
+<td style="text-align: left;">docker ps –format '{{.Names}} {{.Image}}
+{{.Status}}'</td>
+</tr>
+</tbody>
+</table>
+<table>
+<colgroup>
+<col style="width: 100%" />
+</colgroup>
+<tbody>
+<tr>
+<td style="text-align: left;">docker exec php2shell-target php -v</td>
+</tr>
+</tbody>
+</table>
+<p><img
+src="/home/sara/Documents/THM/RecentThreats/php2shellimg/media/image5.png"
+style="width:6.5in;height:1.05556in" /></p>
+<p>We have a PHP version in use for this laboratory which is 8.4.26.</p>
+<p>Let’s look at the page we will be attacking:</p>
+<p><img
+src="/home/sara/Documents/THM/RecentThreats/php2shellimg/media/image4.png"
+style="width:6.5in;height:0.58333in" /></p>
+<p>We found that it’s an application that only prints ‘OK’, there’s no
+login form, no file upload, no database, and certainly no bug in this
+code to exploit.</p>
+<p>The server runs the ordinary prefork mod_php setup with
+session.upload_progress enabled as it is by default. For the lab it is
+cut down to a single worker, and memory_limit is set low, so the
+dangling pointer is reliably reused and the out-of-memory condition is
+easy to provoke; a production host would run many workers with a higher
+limit, which makes the timing harder to hit but not impossible.</p>
+<h2 id="leaking-memory-and-defeating-aslr">Leaking Memory and Defeating
+ASLR</h2>
+<p>Modern systems load code and data at randomised addresses, a defence
+called Address Space Layout Randomisation (ASLR). An attacker who wants
+to redirect execution has to know where things actually are in memory,
+and ASLR is meant to deny that knowledge. CVE-2026-109618 removes it, by
+turning the dangling pointer into a leak of the worker's own memory.</p>
+<p>Let’s explore a bit of the <a
+href="http://exploit.py"><u>exploit.py</u></a></p>
+<p><img
+src="/home/sara/Documents/THM/RecentThreats/php2shellimg/media/image6.png"
+style="width:6.5in;height:1.88889in" /></p>
+<p>We execute the proof-of-concept and we got the output of the id
+command.</p>
+<p><img
+src="/home/sara/Documents/THM/RecentThreats/php2shellimg/media/image7.png"
+style="width:6.5in;height:1.94444in" /></p>
+<table>
+<colgroup>
+<col style="width: 100%" />
+</colgroup>
+<tbody>
+<tr>
+<td style="text-align: left;">python3
+php2shell-bypass-aslr-exp/exploit.py -u http://127.0.0.1:8088/index.php
+-c 'cat /f&gt;/out/p1' --proof-file
+php2shell-bypass-aslr-exp/out/p1</td>
+</tr>
+</tbody>
+</table>
+<p><img
+src="/home/sara/Documents/THM/RecentThreats/php2shellimg/media/image8.png"
+style="width:6.5in;height:2.31944in" /></p>
+<p><img
+src="/home/sara/Documents/THM/RecentThreats/php2shellimg/media/image3.png"
+style="width:6.5in;height:5.26389in" /></p>
+<p><img
+src="/home/sara/Documents/THM/RecentThreats/php2shellimg/media/image1.png"
+style="width:6.5in;height:3.79167in" /></p>
+<p><img
+src="/home/sara/Documents/THM/RecentThreats/php2shellimg/media/image2.png"
+style="width:6.5in;height:5.55556in" /></p>
+
 
             </div>
 
