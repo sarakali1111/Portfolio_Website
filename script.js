@@ -897,12 +897,12 @@ version it ships:</p>
 </tbody>
 </table>
 <p><img
-src="/home/sara/Documents/THM/RecentThreats/php2shellimg/media/image5.png"
+src="php2shellimg/media/image5.png"
 style="width:6.5in;height:1.05556in" /></p>
 <p>We have a PHP version in use for this laboratory which is 8.4.26.</p>
 <p>Let’s look at the page we will be attacking:</p>
 <p><img
-src="/home/sara/Documents/THM/RecentThreats/php2shellimg/media/image4.png"
+src="php2shellimg/media/image4.png"
 style="width:6.5in;height:0.58333in" /></p>
 <p>We found that it’s an application that only prints ‘OK’, there’s no
 login form, no file upload, no database, and certainly no bug in this
@@ -923,12 +923,12 @@ turning the dangling pointer into a leak of the worker's own memory.</p>
 <p>Let’s explore a bit of the <a
 href="http://exploit.py"><u>exploit.py</u></a></p>
 <p><img
-src="/home/sara/Documents/THM/RecentThreats/php2shellimg/media/image6.png"
+src="php2shellimg/media/image6.png"
 style="width:6.5in;height:1.88889in" /></p>
 <p>We execute the proof-of-concept and we got the output of the id
 command.</p>
 <p><img
-src="/home/sara/Documents/THM/RecentThreats/php2shellimg/media/image7.png"
+src="php2shellimg/media/image7.png"
 style="width:6.5in;height:1.94444in" /></p>
 <table>
 <colgroup>
@@ -944,16 +944,16 @@ php2shell-bypass-aslr-exp/out/p1</td>
 </tbody>
 </table>
 <p><img
-src="/home/sara/Documents/THM/RecentThreats/php2shellimg/media/image8.png"
+src="php2shellimg/media/image8.png"
 style="width:6.5in;height:2.31944in" /></p>
 <p><img
-src="/home/sara/Documents/THM/RecentThreats/php2shellimg/media/image3.png"
+src="php2shellimg/media/image3.png"
 style="width:6.5in;height:5.26389in" /></p>
 <p><img
-src="/home/sara/Documents/THM/RecentThreats/php2shellimg/media/image1.png"
+src="php2shellimg/media/image1.png"
 style="width:6.5in;height:3.79167in" /></p>
 <p><img
-src="/home/sara/Documents/THM/RecentThreats/php2shellimg/media/image2.png"
+src="php2shellimg/media/image2.png"
 style="width:6.5in;height:5.55556in" /></p>
 
 
